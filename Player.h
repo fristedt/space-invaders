@@ -27,7 +27,7 @@ Bullet::Bullet(float x, float y) {
   this->x = x;
   this->y = y;
 
-  velocity = 0.4f;
+  velocity = 0.8f;
 
   bitmap = SDL_LoadBMP("res/bullet.bmp");
   if (bitmap == NULL) {

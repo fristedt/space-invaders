@@ -40,6 +40,7 @@ int main(int argc, char** argv) {
   }
 
   Uint32 lastTime = SDL_GetTicks();
+  Uint32 lastShot = 0;
 
   // Main loop
   while (running) {
@@ -57,6 +58,8 @@ int main(int argc, char** argv) {
     }
     SDL_UpdateWindowSurface(window);
 
+    // Check for collision between bullets and aliens. Also destroys bullets
+    // outside of the window.
     // Todo: Clean this up.
     for (int i = 0; i < bullets.size(); ++i) {
       for (int j = 0; j < aliens.size(); ++j) {
@@ -66,14 +69,12 @@ int main(int argc, char** argv) {
               gameEntities.erase(gameEntities.begin() + k);
               delete aliens[j];
               aliens.erase(aliens.begin() + j);
-              continue;
             }
 
             if (gameEntities[k] == bullets[i]) {
               gameEntities.erase(gameEntities.begin() + k);
               delete bullets[i];
               bullets.erase(bullets.begin() + i);
-              continue;
             }
 
           }
@@ -101,14 +102,6 @@ int main(int argc, char** argv) {
           case SDLK_ESCAPE:
             running = false;
             break;
-          case SDLK_SPACE: 
-            {
-              int centerX = player->x + player->rect.w / 2;
-              Bullet* b = new Bullet(centerX, player->y);
-              gameEntities.push_back(b);
-              bullets.push_back(b);
-              break;
-            }
           default:
             break;
         }
@@ -117,12 +110,27 @@ int main(int argc, char** argv) {
 
     // Handle keystate
     const Uint8* state = SDL_GetKeyboardState(NULL);
+    // Movement
     if (state[SDL_SCANCODE_LEFT]) {
       player->velocity = -0.2f;
     } else if (state[SDL_SCANCODE_RIGHT]) {
       player->velocity = 0.2f;
     } else {
       player->velocity = 0;
+    }
+
+    // Shooting
+    if (state[SDL_SCANCODE_SPACE]) {
+      // Check cooldown on shoot.
+      Uint32 time = SDL_GetTicks();
+      if (time - lastShot < 500) {
+        continue;
+      }
+      int centerX = player->x + player->rect.w / 2;
+      Bullet* b = new Bullet(centerX, player->y);
+      gameEntities.push_back(b);
+      bullets.push_back(b);
+      lastShot = time;
     }
   }
 
