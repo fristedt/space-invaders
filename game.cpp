@@ -10,6 +10,7 @@ SDL_Window* window = NULL;
 SDL_Surface* surface = NULL;
 
 bool outsideWindow(GameEntity* gameEntity);
+bool collision(GameEntity* geA, GameEntity* geB);
 
 int main(int argc, char** argv) {
   // Initialize
@@ -28,9 +29,14 @@ int main(int argc, char** argv) {
   Player* player = new Player;
 
   std::vector<GameEntity*> gameEntities;
+  std::vector<Alien*> aliens;
+  std::vector<Bullet*> bullets;
+
   gameEntities.push_back(player);
   for (int i = 0; i < 8; ++i) {
-    gameEntities.push_back(new Alien(30 + 60 * i, 30));
+    Alien* a = new Alien(30 + 60 * i, 0);
+    gameEntities.push_back(a);
+    aliens.push_back(a);
   }
 
   Uint32 lastTime = SDL_GetTicks();
@@ -51,8 +57,39 @@ int main(int argc, char** argv) {
     }
     SDL_UpdateWindowSurface(window);
 
-    // Remove entities outside of screen. Todo: Should delete as well.
-    gameEntities.erase(std::remove_if(std::begin(gameEntities), std::end(gameEntities), outsideWindow), std::end(gameEntities));
+    // Todo: Clean this up.
+    for (int i = 0; i < bullets.size(); ++i) {
+      for (int j = 0; j < aliens.size(); ++j) {
+        if (collision(bullets[i], aliens[j])) {
+          for (int k = 0; k < gameEntities.size(); ++k) {
+            if (gameEntities[k] == aliens[j]) {
+              gameEntities.erase(gameEntities.begin() + k);
+              delete aliens[j];
+              aliens.erase(aliens.begin() + j);
+              continue;
+            }
+
+            if (gameEntities[k] == bullets[i]) {
+              gameEntities.erase(gameEntities.begin() + k);
+              delete bullets[i];
+              bullets.erase(bullets.begin() + i);
+              continue;
+            }
+
+          }
+        }
+      }
+      if (outsideWindow(bullets[i])) {
+        for (int k = 0; k < gameEntities.size(); ++k) {
+          if (gameEntities[k] == bullets[i]) {
+            gameEntities.erase(gameEntities.begin() + k);
+            delete bullets[i];
+            bullets.erase(bullets.begin() + i);
+            continue;
+          }
+        }
+      }
+    }
 
     // Handle events
     SDL_Event e;
@@ -67,7 +104,9 @@ int main(int argc, char** argv) {
           case SDLK_SPACE: 
             {
               int centerX = player->x + player->rect.w / 2;
-              gameEntities.push_back(new Bullet(centerX, player->y));
+              Bullet* b = new Bullet(centerX, player->y);
+              gameEntities.push_back(b);
+              bullets.push_back(b);
               break;
             }
           default:
@@ -107,4 +146,30 @@ bool outsideWindow(GameEntity* gameEntity) {
     return true;
   }
   return false;
+}
+
+bool collision(GameEntity* geA, GameEntity* geB) {
+  int topA = geA->rect.y;
+  int rightA = geA->rect.x + geA->rect.w;
+  int bottomA = geA->rect.y + geA->rect.h;
+  int leftA = geA->rect.x;
+
+  int topB = geB->rect.y;
+  int rightB = geB->rect.x + geB->rect.w;
+  int bottomB = geB->rect.y + geB->rect.h;
+  int leftB = geB->rect.x;
+
+  if (bottomA <= topB) {
+    return false;
+  }
+  if (topA >= bottomB) {
+    return false;
+  }
+  if (rightA <= leftB) {
+    return false;
+  }
+  if (leftA >= rightB) {
+    return false;
+  }
+  return true;
 }

@@ -82,7 +82,7 @@ Alien::Alien(float x, float y) {
   this->x = x;
   this->y = y;
 
-  // velocity = 0.1f;
+  velocity = 0.05f;
 
   bitmap = SDL_LoadBMP("res/alien.bmp");
   if (bitmap == NULL) {
@@ -94,5 +94,6 @@ Alien::Alien(float x, float y) {
 }
 
 void Alien::update(Uint32 delta) {
+  y += delta * velocity;
   GameEntity::update(delta);
 }
