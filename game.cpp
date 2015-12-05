@@ -2,7 +2,10 @@
 #include <iostream>
 #include <vector>
 #include <algorithm>
+#include "GameEntity.h"
 #include "Player.h"
+#include "Alien.h"
+#include "Bullet.h"
 #include "constants.h"
 
 bool running = true;
@@ -33,8 +36,8 @@ int main(int argc, char** argv) {
   std::vector<Bullet*> bullets;
 
   gameEntities.push_back(player);
-  for (int i = 0; i < 8; ++i) {
-    Alien* a = new Alien(30 + 60 * i, 0);
+  for (int i = 0; i < 10; ++i) {
+    Alien* a = new Alien(ENEMY_MARGIN + 55 * i, 0);
     gameEntities.push_back(a);
     aliens.push_back(a);
   }
@@ -49,12 +52,12 @@ int main(int argc, char** argv) {
     Uint32 delta = currentTime - lastTime;
     lastTime = currentTime;
 
-    std::cout << "size: " << gameEntities.size() << std::endl << std::flush;
+    /* std::cout << "size: " << gameEntities.size() << std::endl << std::flush; */
     // Clear, update, and draw
     SDL_FillRect(surface, NULL, SDL_MapRGB(surface->format, 0x00, 0x00, 0x00));
     for (auto &gameEntity : gameEntities) {
       gameEntity->update(delta);
-      SDL_BlitScaled(gameEntity->bitmap, NULL, surface, &(gameEntity->rect));
+      SDL_BlitScaled(gameEntity->bitmap, gameEntity->srcrect, surface, &(gameEntity->dstrect));
     }
     SDL_UpdateWindowSurface(window);
 
@@ -126,7 +129,7 @@ int main(int argc, char** argv) {
       if (time - lastShot < 500) {
         continue;
       }
-      int centerX = player->x + player->rect.w / 2;
+      int centerX = player->x + player->dstrect.w / 2;
       Bullet* b = new Bullet(centerX, player->y);
       gameEntities.push_back(b);
       bullets.push_back(b);
@@ -144,28 +147,28 @@ bool outsideWindow(GameEntity* gameEntity) {
   if (gameEntity->x < 0) {
     return true;
   }
-  if (gameEntity->x + gameEntity->rect.w > SCREEN_WIDTH) {
+  if (gameEntity->x + gameEntity->dstrect.w > SCREEN_WIDTH) {
     return true;
   }
   if (gameEntity->y < 0) {
     return true;
   }
-  if (gameEntity->y + gameEntity->rect.h > SCREEN_HEIGHT) {
+  if (gameEntity->y + gameEntity->dstrect.h > SCREEN_HEIGHT) {
     return true;
   }
   return false;
 }
 
 bool collision(GameEntity* geA, GameEntity* geB) {
-  int topA = geA->rect.y;
-  int rightA = geA->rect.x + geA->rect.w;
-  int bottomA = geA->rect.y + geA->rect.h;
-  int leftA = geA->rect.x;
+  int topA = geA->dstrect.y;
+  int rightA = geA->dstrect.x + geA->dstrect.w;
+  int bottomA = geA->dstrect.y + geA->dstrect.h;
+  int leftA = geA->dstrect.x;
 
-  int topB = geB->rect.y;
-  int rightB = geB->rect.x + geB->rect.w;
-  int bottomB = geB->rect.y + geB->rect.h;
-  int leftB = geB->rect.x;
+  int topB = geB->dstrect.y;
+  int rightB = geB->dstrect.x + geB->dstrect.w;
+  int bottomB = geB->dstrect.y + geB->dstrect.h;
+  int leftB = geB->dstrect.x;
 
   if (bottomA <= topB) {
     return false;
