@@ -36,11 +36,15 @@ int main(int argc, char** argv) {
   std::vector<Bullet*> bullets;
 
   gameEntities.push_back(player);
+
   for (int i = 0; i < 10; ++i) {
-    Alien* a = new Alien(ENEMY_MARGIN + 55 * i, 0);
-    gameEntities.push_back(a);
-    aliens.push_back(a);
+    for (int j = 0; j < 5; ++j) {
+      Alien *a = new Alien(ENEMY_MARGIN + 55 * i, 0, j);
+      gameEntities.push_back(a);
+      aliens.push_back(a);
+    }
   }
+
 
   Uint32 lastTime = SDL_GetTicks();
   Uint32 lastShot = 0;

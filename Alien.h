@@ -3,24 +3,27 @@
 
 struct Alien: public GameEntity {
   public:
-  Alien(float x, float y);
+  Alien(float x, float y, int row);
   ~Alien();
   void update(Uint32 delta);
 
   private:
-  int counter;
+  int counter, row_;
   static int direction, shared_y;
+  const static int y_step = 3;
 };
 
 int Alien::direction = 1;
 int Alien::shared_y;
 
-Alien::Alien(float x, float y) {
+Alien::Alien(float x, float y, int row) {
   this->x = x;
   this->y = y;
   shared_y = y;
 
-  velocity = 0.05f;
+  row_ = row;
+
+  velocity = 0.025f;
 
   bitmap = SDL_LoadBMP("res/invader.bmp");
   if (bitmap == NULL) {
@@ -49,15 +52,15 @@ void Alien::update(Uint32 delta) {
 
   if (x + dstrect.w > SCREEN_WIDTH - ENEMY_MARGIN) {
     direction = -1;
-    shared_y += 5;
+    shared_y += y_step;
   }
 
   if (x < ENEMY_MARGIN) {
     direction = 1;
-    shared_y += 5;
+    shared_y += y_step;
   }
 
   x += delta * velocity * Alien::direction;
-  y = shared_y;
+  y = shared_y + row_ * 22;
   GameEntity::update(delta);
 }
